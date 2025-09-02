@@ -68,6 +68,9 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
           final currentTemp = getCurrentWeatherData['main']['temp'];
           final currentSky = getCurrentWeatherData['weather'][0]['main'];
+          final currentPressure = getCurrentWeatherData['main']['pressure'];
+          final currentWindSpeed = getCurrentWeatherData['wind']['speed'];
+          final currentHumidity = getCurrentWeatherData['main']['humidity'];
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -98,9 +101,18 @@ class _WeatherScreenState extends State<WeatherScreen> {
                                 ),
                               ),
                               SizedBox(height: 16),
-                              Icon(currentSky == "Clouds" || currentSky == "Rain" ? Icons.cloud : Icons.sunny, size: 64),
+                              Icon(() {
+                                if (currentSky == "Clouds") return Icons.cloud;
+                                if (currentSky == "Rain")return Icons.cloudy_snowing;
+                                if (currentSky == "Clear") return Icons.sunny;
+                                if (currentSky == "Snow") return Icons.ac_unit;
+                                return Icons.help; // fallback if no match
+                              }(), size: 64),
                               SizedBox(height: 16),
-                              Text("$currentSky", style: TextStyle(fontSize: 20)),
+                              Text(
+                                "$currentSky",
+                                style: TextStyle(fontSize: 20),
+                              ),
                             ],
                           ),
                         ),
@@ -111,44 +123,33 @@ class _WeatherScreenState extends State<WeatherScreen> {
                 const SizedBox(height: 20),
                 // weather forecast cards
                 const Text(
-                  "Weather Forecast",
+                  "Hourly Forecast",
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                const SingleChildScrollView(
+                SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
                       // first card
-                      HourlyForcastItem(
-                        time: "1 PM",
-                        icon: Icons.wb_sunny,
-                        temperature: "25°F",
-                      ),
-                      // second card
-                      HourlyForcastItem(
-                        time: "2 PM",
-                        icon: Icons.cloud,
-                        temperature: "24°F",
-                      ),
-                      // third card
-                      HourlyForcastItem(
-                        time: "3 PM",
-                        icon: Icons.grain,
-                        temperature: "22°F",
-                      ),
-                      // fourth card
-                      HourlyForcastItem(
-                        time: "4 PM",
-                        icon: Icons.ac_unit,
-                        temperature: "20°F",
-                      ),
-                      // fifth card
-                      HourlyForcastItem(
-                        time: "5 PM",
-                        icon: Icons.wb_cloudy,
-                        temperature: "21°F",
-                      ),
+                      for (int i = 1; i <= 5; i++)
+                        HourlyForcastItem(
+                          time: data['list'][i]['dt_txt'].toString().substring(
+                            11,
+                            16,
+                          ),
+                          icon: () {
+                            String condition =
+                                data['list'][i]['weather'][0]['main'];
+                            if (condition == "Rain")
+                              return Icons.cloudy_snowing;
+                            if (condition == "Clouds") return Icons.wb_cloudy;
+                            if (condition == "Clear") return Icons.sunny;
+                            if (currentSky == "Snow") return Icons.ac_unit;
+                            return Icons.help; // default fallback
+                          }(),
+                          temperature: "${data['list'][i]['main']['temp']} K",
+                        ),
                     ],
                   ),
                 ),
@@ -164,17 +165,17 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     AdditionalInformation(
                       icon: Icons.water_drop,
                       label: "Humidity",
-                      value: "78%",
+                      value: "$currentHumidity%",
                     ),
                     AdditionalInformation(
                       icon: Icons.air,
                       label: "Wind Speed",
-                      value: "12 mph",
+                      value: "$currentWindSpeed mph",
                     ),
                     AdditionalInformation(
                       icon: Icons.beach_access,
                       label: "Pressure",
-                      value: "1013 hPa",
+                      value: "$currentPressure hPa",
                     ),
                   ],
                 ),
