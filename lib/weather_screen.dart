@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:weather_app/additional_information.dart';
 import 'package:weather_app/hourly_forecast_item.dart';
 import 'package:http/http.dart' as http;
@@ -18,7 +19,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
   // double temp = 0;
   Future<Map<String, dynamic>> getCurrentWeather() async {
     try {
-      String cityName = "London";
+      String cityName = "Kathmandu";
       final res = await http.get(
         Uri.parse(
           'https://api.openweathermap.org/data/2.5/forecast?q=$cityName&APPID=$openWeatherAPIKey',
@@ -39,14 +40,15 @@ class _WeatherScreenState extends State<WeatherScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Weather App'),
+        title: const Text('Weather App', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              print('Refresh button pressed');
+              // print('Refresh button pressed');
+              setState(() {});
             },
           ),
         ],
@@ -88,7 +90,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                         child: Padding(
                           padding: EdgeInsets.all(16.0),
                           child: Column(
@@ -103,7 +105,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
                               SizedBox(height: 16),
                               Icon(() {
                                 if (currentSky == "Clouds") return Icons.cloud;
-                                if (currentSky == "Rain")return Icons.cloudy_snowing;
+                                if (currentSky == "Rain")
+                                  return Icons.cloudy_snowing;
                                 if (currentSky == "Clear") return Icons.sunny;
                                 if (currentSky == "Snow") return Icons.ac_unit;
                                 return Icons.help; // fallback if no match
@@ -127,30 +130,65 @@ class _WeatherScreenState extends State<WeatherScreen> {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      // first card
-                      for (int i = 1; i <= 5; i++)
-                        HourlyForcastItem(
-                          time: data['list'][i]['dt_txt'].toString().substring(
-                            11,
-                            16,
-                          ),
-                          icon: () {
-                            String condition =
-                                data['list'][i]['weather'][0]['main'];
-                            if (condition == "Rain")
-                              return Icons.cloudy_snowing;
-                            if (condition == "Clouds") return Icons.wb_cloudy;
-                            if (condition == "Clear") return Icons.sunny;
-                            if (currentSky == "Snow") return Icons.ac_unit;
-                            return Icons.help; // default fallback
-                          }(),
-                          temperature: "${data['list'][i]['main']['temp']} K",
-                        ),
-                    ],
+
+                // SingleChildScrollView(
+                //   scrollDirection: Axis.horizontal,
+                //   child: Row(
+                //     children: [
+                //       // first card
+                //       for (int i = 1; i <= 5; i++)
+                //         HourlyForcastItem(
+                //           time: data['list'][i]['dt_txt'].toString().substring(
+                //             11,
+                //             16,
+                //           ),
+                //           icon: () {
+                //             String condition =
+                //                 data['list'][i]['weather'][0]['main'];
+                //             if (condition == "Rain")
+                //               return Icons.cloudy_snowing;
+                //             if (condition == "Clouds") return Icons.wb_cloudy;
+                //             if (condition == "Clear") return Icons.sunny;
+                //             if (currentSky == "Snow") return Icons.ac_unit;
+                //             return Icons.help; // default fallback
+                //           }(),
+                //           temperature: "${data['list'][i]['main']['temp']} K",
+                //         ),
+                //     ],
+                //   ),
+                // ),
+
+                SizedBox(
+                  height: 120,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    shrinkWrap: true,
+                    itemCount: 5,
+                    itemBuilder: (context, index) {
+                      final forecast = data['list'][index + 1];
+                      // final time = forecast['dt_txt'].toString().substring(11, 16);
+                      final temp = forecast['main']['temp'];
+                      final condition = forecast['weather'][0]['main'];
+                      final time = DateTime.parse(forecast['dt_txt']);
+                  
+                      IconData icon;
+                      if (condition == "Rain")
+                        icon = Icons.cloudy_snowing;
+                      else if (condition == "Clouds")
+                        icon = Icons.wb_cloudy;
+                      else if (condition == "Clear")
+                        icon = Icons.sunny;
+                      else if (condition == "Snow")
+                        icon = Icons.ac_unit;
+                      else
+                        icon = Icons.help; // default fallback
+                  
+                      return HourlyForcastItem(
+                        time: DateFormat.j().format(time),
+                        icon: icon,
+                        temperature: "$temp K",
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 16),
